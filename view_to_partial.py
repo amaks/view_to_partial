@@ -16,22 +16,13 @@ class ViewToPartialCommand(sublime_plugin.TextCommand):
   def get_selected_text(self, partial_name):
     region = self.view.sel()[0]
 
-    # lines = self.view.lines(region)
-    # print(lines) # [(83, 100), (101, 124), (125, 125), (126, 166), (167, 284)]
-
-    # line  = self.view.line(region)
-    # print(line) # (83, 284)
-
-    # lines = self.view.substr(region).split('\n')
-    # print(lines)
-    # for i in lines:
-    #   print(i)
-
     if not region.empty():
-      partial_code = self.view.substr(region)
-      self.create_partial_file(partial_name, partial_code)
+      partial_code  = self.view.substr(region)
+      spaces_number = len(partial_code) - len(partial_code.lstrip(' '))
 
-  def create_partial_file(self, partial_name, partial_code):
+      self.create_partial_file(partial_name, partial_code, spaces_number)
+
+  def create_partial_file(self, partial_name, partial_code, spaces_number):
     source                      = self.view.file_name()
     source_path                 = os.path.dirname(source)
     rails_view_path             = os.path.dirname(source_path)
@@ -50,19 +41,20 @@ class ViewToPartialCommand(sublime_plugin.TextCommand):
       with open(partial_file_with_path, 'w') as f:
         f.write(textwrap.dedent(new_class_code))
 
-    self.insert_class_reference(partial_name, original_file_extension)
+    self.insert_class_reference(partial_name, original_file_extension, spaces_number)
 
     self.view.window().open_file(partial_file_with_path)
 
-  def insert_class_reference(self, partial_name, original_file_extension):
+  def insert_class_reference(self, partial_name, original_file_extension, spaces_number):
     region = self.view.sel()[0]
 
     # TODO correctly calculate spaces before new_region
+    spaces = [' ' for x in range(spaces_number)]
 
     if original_file_extension == 'html':
-      new_region = "<%= render '" + partial_name + "' %>"
+      new_region = ''.join(spaces) + "<%= render '" + partial_name + "' %>"
     else:
-      new_region = "= render '" + partial_name + "'"
+      new_region = ''.join(spaces) + "= render '" + partial_name + "'"
 
     with Edit(self.view) as edit:
       edit.replace(region, new_region)

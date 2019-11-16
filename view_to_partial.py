@@ -11,7 +11,7 @@ class ViewToPartialCommand(sublime_plugin.TextCommand):
 
   def run(self, edit):
     self.edit = edit
-    self.view.window().show_input_panel("Partial name:", "", self.get_selected_text, None, None)
+    self.view.window().show_input_panel("Partial name (without extension):", "", self.get_selected_text, None, None)
 
   def get_selected_text(self, partial_name):
     region = self.view.sel()[0]
